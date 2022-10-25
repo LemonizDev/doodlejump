@@ -245,5 +245,3 @@ while running:
     pygame.display.flip()
 
 pygame.quit()
-
-#42:37

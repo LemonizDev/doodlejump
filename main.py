@@ -1,6 +1,3 @@
-#py -m pip install pygame
-#https://www.calculatorsoup.com/calculators/math/ratios.php
-#https://remove.bg/
 from abc import abstractstaticmethod
 from turtle import speed
 import webbrowser

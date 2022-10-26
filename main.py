@@ -29,6 +29,8 @@ block = pygame.transform.scale(pygame.image.load('platform.png'), (100, 30))
 white_block = pygame.transform.scale(pygame.image.load('white-platform.png'), (100, 30))
 comp_spring = pygame.image.load('spring_comp.png')
 spring = pygame.image.load('spring.png')
+brokenp = pygame.image.load('broken_platforms.png')
+brokenp1 = pygame.image.load('broken_platforms1.png')
 icon = pygame.image.load('icon.jpg')
 fps = 60
 font = pygame.font.Font('freesansbold.ttf', 16)
@@ -39,6 +41,8 @@ player_x = 270
 player_y = 450
 platforms = [[260, 550], [160, 430], [160, 166], [30, 298], [280, 46]]
 white_platforms = [[280, 298]]
+broken_platforms = [[random.randint(10, width - 100), random.randint(-300, -200)]] 
+used_brown = []
 springs = []
 used_springs = []
 jump = False
@@ -60,13 +64,14 @@ pygame.display.set_icon(icon)
 
 
 running = True
+pause = False
 
 #generating springed platforms
 def generate_springs():
     global comp_spring
     global spring
     global platforms
-    probabilities = [True, False] #[True, False, False, False, False, False]
+    probabilities = [True, False, False, False] #25% probability for true
     choice = random.choice(probabilities)
     if choice:
         if len(springs) != 1:
@@ -94,6 +99,46 @@ def update_player(y_pos):
     gravity = 0.45
     return y_pos
 
+#function to break brown platforms on collision
+def break_platform(list):
+    global broken_platforms
+    global used_brown
+    global y_change
+    global gravity
+    x = list[0]
+    y = int(list[1])
+    used_brown.append([x, y])
+    broken_platforms.remove(list)
+    broken_platforms.append([random.randint(10, width - 100), random.randint(-300, 0)])
+    
+#game pause
+def pause():
+    global pause
+    pause = True
+    while pause:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pause = False
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    pause = False
+        fent = pygame.font.SysFont('times new roman', 60)
+        text = fent.render('Game Paused', True, black)
+        textRect = text.get_rect()
+        textRect.center = (width // 2, height // 2)
+        ntext = fent.render('Press P to resume', True, black)
+        ntextRect = ntext.get_rect()
+        ntextRect.center = (width // 2, height // 2 + 50)
+        screen.blit(text, textRect)
+        screen.blit(ntext, ntextRect)
+        pygame.display.update()
+        timer.tick(15)
+
+
+
+
 #function to check platform collisions
 def check_collision(list, white_list, j, w_platforms):
     global player_y
@@ -106,16 +151,26 @@ def check_collision(list, white_list, j, w_platforms):
     global white_platforms
     global springs
     global springy
+    global browns
+    global broken_platforms
+    global used_brown
     l= []
     wl = []
     spl = []
+    bpl = []
+
+    #generating a list of rectangles
     for i in range(len(list)):
         l.append(list[i].get_rect(topleft = (platforms[i][0], platforms[i][1])))
     for i in range(len(white_list)):
         wl.append(white_list[i].get_rect(topleft = (white_platforms[i][0], white_platforms[i][1])))
     for i in range(len(springs)):
         spl.append(springy[i].get_rect(topleft = (springs[i][0], springs[i][1])))
+    for i in range(len(broken_platforms)):
+        bpl.append(brokenp1.get_rect(topleft = (broken_platforms[i][0], broken_platforms[i][1])))
 
+
+    #checking collisions 
     for i in range(len(l)):
         if l[i].colliderect([player_x+ 20, player_y, 35, 82]) and j == False and y_change > 0:
             j = True
@@ -134,6 +189,9 @@ def check_collision(list, white_list, j, w_platforms):
             y = int(springs[i][1])
             springs.remove(springs[i])
             used_springs.append([x, y])
+    for i in range(len(bpl)):
+        if bpl[i].colliderect([player_x+ 20, player_y, 35, 82]) and j == False and y_change > 0:
+            break_platform(broken_platforms[i])
     return j, w_platforms
         
 # Function to move camera as the player progresses upwards
@@ -151,6 +209,11 @@ def update_platforms(array, white_array, y, delta_y):
             springs[i][1] -= 0.5 * delta_y
         for i in range(len(used_springs)):
             used_springs[i][1] -= 0.5 * delta_y
+        for i in range(len(broken_platforms)):
+            broken_platforms[i][1] -= 0.5 * delta_y
+        for i in range(len(used_brown)):
+            used_brown[i][1] -= 0.5 * delta_y
+
     if y < 0 and delta_y < 0:
         gravity = 0.9
         for i in range(len(array)):
@@ -161,6 +224,10 @@ def update_platforms(array, white_array, y, delta_y):
             springs[i][1] -= 2 * delta_y
         for i in range(len(used_springs)):
             used_springs[i][1] -= 2 * delta_y
+        for i in range(len(broken_platforms)):
+            broken_platforms[i][1] -= 2 * delta_y
+        for i in range(len(used_brown)):
+            used_brown[i][1] -= 2 * delta_y
             
     else:
         pass;
@@ -173,7 +240,7 @@ def update_platforms(array, white_array, y, delta_y):
     for element in white_array:
         if element[1] > height:
             white_array.remove(element)
-            white_array.append([random.randint(10, width - 100), random.randint(-700, 0)])
+            white_array.append([random.randint(10, width - 100), random.randint(-700, -200)])
             score += 1
     for element in springs:
         if element[1] > height:
@@ -181,6 +248,13 @@ def update_platforms(array, white_array, y, delta_y):
     for element in used_springs:
         if element[1] > height:
             used_springs.remove(element)
+    for element in broken_platforms:
+        if element[1] > height:
+            broken_platforms.remove(element)
+            broken_platforms.append([random.randint(10, width - 100), random.randint(-300, 0)])
+    for element in used_brown:
+        if element[1] > height:
+            used_brown.remove(element)
     return array, white_array
 
 
@@ -192,8 +266,10 @@ while running:
     blocks = []
     white_blocks = []
     springy = []
+    browns = [] #non racist comment
     score_render = font.render('Score: ' + str(score), True, black)
     screen.blit(score_render, (10, 10))
+
 
     if score > high_score:
         high_score = score
@@ -218,6 +294,14 @@ while running:
 
     for i in range(len(used_springs)):
         screen.blit(spring, (used_springs[i][0], used_springs[i][1]))
+    
+    for i in range(len(broken_platforms)):
+        screen.blit(brokenp, (broken_platforms[i][0], broken_platforms[i][1]))
+        browns.append(brokenp)
+    
+    for i in range(len(used_brown)):
+        screen.blit(brokenp1, (used_brown[i][0], used_brown[i][1]))
+
 
 #event handler
     for event in pygame.event.get():
@@ -233,6 +317,8 @@ while running:
                 game_over = False
                 platforms = [[260, 550], [160, 430], [160, 166], [30, 298], [280, 46]]
                 white_platforms = [[280, 298]]
+                broken_platforms = [[random.randint(10, width - 100), random.randint(-300, -200)]]
+                used_brown = []
                 used_springs = []
                 springs = []
                 player_x = 270
@@ -244,6 +330,11 @@ while running:
                 x_change = speed 
             if(event.key == pygame.K_F1):
                 webbrowser.open(url, new = new)
+                if not game_over:
+                    pause()
+            if (event.key == pygame.K_p):
+                pause()
+            
         if event.type == pygame.KEYUP:
             if (event.key == pygame.K_a) or (event.key == pygame.K_LEFT):
                 x_change = 0
@@ -296,7 +387,11 @@ while running:
         restartmsg = fent2.render('Press R to restart', True, black)
         restartmsg_rect = restartmsg.get_rect(center=(width/2, height/2 + 100))
 
+        helpmsg = fent2.render('Press F1 for help', True, black)
+        helpmsg_rect = helpmsg.get_rect(center=(width/2, height/2 + 150))
+
         screen.blit(restartmsg, restartmsg_rect)
+        screen.blit(helpmsg, helpmsg_rect)
         screen.blit(scr, scr_rect)
         screen.blit(gover, gover_rect)
         y_change = 0
@@ -307,6 +402,8 @@ while running:
     if score % 100 == 0 and score != 0 and score != previous_score:
         powerup += 1
         previous_score = score
+    
+    
     pygame.display.flip()
 
 pygame.quit()

@@ -1,6 +1,7 @@
 #py -m pip install pygame
 #https://www.calculatorsoup.com/calculators/math/ratios.php
 #https://remove.bg/
+from abc import abstractstaticmethod
 from turtle import speed
 import webbrowser
 import pygame
@@ -26,6 +27,8 @@ background = pygame.transform.scale(background, (width, height))
 player = pygame.transform.scale(pygame.image.load('player.png'), (100,82)) 
 block = pygame.transform.scale(pygame.image.load('platform.png'), (100, 30))
 white_block = pygame.transform.scale(pygame.image.load('white-platform.png'), (100, 30))
+comp_spring = pygame.image.load('spring_comp.png')
+spring = pygame.image.load('spring.png')
 icon = pygame.image.load('icon.jpg')
 fps = 60
 font = pygame.font.Font('freesansbold.ttf', 16)
@@ -36,6 +39,8 @@ player_x = 270
 player_y = 450
 platforms = [[260, 550], [160, 430], [160, 166], [30, 298], [280, 46]]
 white_platforms = [[280, 298]]
+springs = []
+used_springs = []
 jump = False
 y_change = 0
 x_change = 0
@@ -56,6 +61,21 @@ pygame.display.set_icon(icon)
 
 running = True
 
+#generating springed platforms
+def generate_springs():
+    global comp_spring
+    global spring
+    global platforms
+    probabilities = [True, False] #[True, False, False, False, False, False]
+    choice = random.choice(probabilities)
+    if choice:
+        if len(springs) != 1:
+            n = random.choice(platforms)
+            while n[1] > 0:
+                n = random.choice(platforms)
+            springs.append([n[0] + 6, n[1] - 34])
+
+
 #function to update the player's y position every loop
 def update_player(y_pos):
     global jump
@@ -64,7 +84,10 @@ def update_player(y_pos):
     global gravity
     jump_height = 10
     if jump:
-        y_change = -jump_height
+        if y_change == -20:
+            pass
+        else:
+            y_change = -jump_height
         jump = False
     y_pos += y_change
     y_change += gravity
@@ -81,38 +104,63 @@ def check_collision(list, white_list, j, w_platforms):
     global block
     global platforms
     global white_platforms
+    global springs
+    global springy
     l= []
     wl = []
+    spl = []
     for i in range(len(list)):
         l.append(list[i].get_rect(topleft = (platforms[i][0], platforms[i][1])))
     for i in range(len(white_list)):
         wl.append(white_list[i].get_rect(topleft = (white_platforms[i][0], white_platforms[i][1])))
+    for i in range(len(springs)):
+        spl.append(springy[i].get_rect(topleft = (springs[i][0], springs[i][1])))
+
     for i in range(len(l)):
         if l[i].colliderect([player_x+ 20, player_y, 35, 82]) and j == False and y_change > 0:
             j = True
+
     for i in range(len(wl)):
         if wl[i].colliderect([player_x+ 20, player_y, 35, 82]) and j == False and y_change > 0:
             j = True
             w_platforms.remove(w_platforms[i])
             w_platforms.append([random.randint(10, width - 100), random.randint(-700, 0)])
+    
+    for i in range(len(spl)):
+        if spl[i].colliderect([player_x+ 20, player_y, 35, 82]) and j == False and y_change > 0:
+            j = True
+            y_change = -20
+            x = int(springs[i][0])
+            y = int(springs[i][1])
+            springs.remove(springs[i])
+            used_springs.append([x, y])
     return j, w_platforms
         
 # Function to move camera as the player progresses upwards
 def update_platforms(array, white_array, y, delta_y):
     global gravity
     global score
+    global springs
+    global used_springs
     if y < height//2 and delta_y < 0:
         for i in range(len(array)):
             array[i][1] -= 0.5 * delta_y
         for i in range(len(white_array)):
             white_array[i][1] -= 0.5 * delta_y
+        for i in range(len(springs)):
+            springs[i][1] -= 0.5 * delta_y
+        for i in range(len(used_springs)):
+            used_springs[i][1] -= 0.5 * delta_y
     if y < 0 and delta_y < 0:
+        gravity = 0.9
         for i in range(len(array)):
             array[i][1] -= 2 * delta_y
-            gravity = 0.9
         for i in range(len(white_array)):
             white_array[i][1] -= 2 * delta_y
-            gravity = 0.9
+        for i in range(len(springs)):
+            springs[i][1] -= 2 * delta_y
+        for i in range(len(used_springs)):
+            used_springs[i][1] -= 2 * delta_y
             
     else:
         pass;
@@ -120,12 +168,19 @@ def update_platforms(array, white_array, y, delta_y):
         if element[1] > height:
             array.remove(element)
             array.append([random.randint(10, width - 100), 0])
+            generate_springs()
             score += 1
     for element in white_array:
         if element[1] > height:
             white_array.remove(element)
             white_array.append([random.randint(10, width - 100), random.randint(-700, 0)])
             score += 1
+    for element in springs:
+        if element[1] > height:
+            springs.remove(element)
+    for element in used_springs:
+        if element[1] > height:
+            used_springs.remove(element)
     return array, white_array
 
 
@@ -136,6 +191,7 @@ while running:
     timer.tick(fps)
     blocks = []
     white_blocks = []
+    springy = []
     score_render = font.render('Score: ' + str(score), True, black)
     screen.blit(score_render, (10, 10))
 
@@ -156,6 +212,13 @@ while running:
         screen.blit(white_block, (white_platforms[i][0], white_platforms[i][1]))
         white_blocks.append(white_block)
 
+    for i in range(len(springs)):
+        screen.blit(comp_spring, (springs[i][0], springs[i][1]))
+        springy.append(spring)
+
+    for i in range(len(used_springs)):
+        screen.blit(spring, (used_springs[i][0], used_springs[i][1]))
+
 #event handler
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -170,6 +233,8 @@ while running:
                 game_over = False
                 platforms = [[260, 550], [160, 430], [160, 166], [30, 298], [280, 46]]
                 white_platforms = [[280, 298]]
+                used_springs = []
+                springs = []
                 player_x = 270
                 player_y = 450
                 score = 0

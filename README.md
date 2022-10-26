@@ -18,6 +18,7 @@ Just a recreation of the iOS classic, Doodle Jump.
     - [Setup (a guide for newbies)](#setup-a-guide-for-newbies)
   - [Compatible devices](#compatible-devices)
   - [Dependencies](#dependencies)
+  - [Tools](#tools)
   - [Contributing](#contributing)
   - [Related](#related)
 
@@ -77,6 +78,19 @@ Here are the libraries I used while making the game
   - speed
 - webbrowser
 - random
+
+## Tools
+
+- [Visual Studio Code](https://code.visualstudio.com/)
+
+- [Adobe Photoshop 2021](https://www.adobe.com/in/products/photoshop.html)
+
+- [Calculatorsoup](https://www.calculatorsoup.com/calculators/math/ratios.php) 
+
+- [Microsoft Power Toys](https://learn.microsoft.com/en-us/windows/powertoys/)
+
+- [Git](https://git-scm.com/)
+
 
 ## Contributing
 Bugs and issues in [GitHub Issues](https://github.com/LemonizDev/doodlejump/issues)

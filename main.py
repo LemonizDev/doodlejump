@@ -2,8 +2,17 @@ from abc import abstractstaticmethod
 from turtle import speed
 import webbrowser
 import pygame
+from pygame import mixer
 import random
 pygame.init()
+mixer.init()
+import json
+
+
+#loading data from json file
+file = open('dbcrypt.json', 'r+')
+data = json.load(file)
+
 
 #colors
 white = (255,255,255)
@@ -47,18 +56,23 @@ y_change = 0
 x_change = 0
 speed = 8
 score = 0
-high_score = 0
+high_score = data['high_score']
 game_over = False
-powerup = 2
+powerup = data['powerups']
 previous_score = 0
 jump_height = 10
 gravity = .45
+tips = ['Pro Tip: Press Space to use a powerup', 'Pro Tip: Press A or D to move', 'Pro Tip: Press F1 for help', 'Pro Tip: Press P to pause', 'Pro Tip: Press X to reset data']
+tip = random.choice(tips)
 
 #screen 
 screen = pygame.display.set_mode([width, height])
 pygame.display.set_caption('Doodle Jump')
 pygame.display.set_icon(icon)
 
+#music
+mixer.music.load('bgmusic.wav')
+mixer.music.play(-1)
 
 running = True
 pause = False
@@ -255,6 +269,13 @@ def update_platforms(array, white_array, y, delta_y):
     return array, white_array
 
 
+# Function to dump data (score data)
+def dump_data(d, f):
+    f.seek(0)
+    json.dump(d, f)
+    f.truncate()
+
+
 #game loop
 while running:
     screen.blit(background, (0,0))
@@ -263,18 +284,20 @@ while running:
     blocks = []
     white_blocks = []
     springy = []
-    browns = [] #non racist comment
+    browns = [] 
     score_render = font.render('Score: ' + str(score), True, black)
     screen.blit(score_render, (10, 10))
 
 
     if score > high_score:
-        high_score = score
+        if not game_over:
+            high_score = score
     high_score_render = font.render('High Score: ' + str(high_score), True, black)
     screen.blit(high_score_render, (10, 30))
 
     powerupsfont = font.render('Powerups: ' + str(powerup) + ' (Spacebar)', True, black)
     screen.blit(powerupsfont, (10, 50))
+
 
 #generating blocks
     for i in range(len(platforms)):
@@ -311,6 +334,7 @@ while running:
                 powerup -= 1
                 y_change = -15
             if((event.key == pygame.K_r) or (event.key == pygame.K_SPACE)) and game_over == True:
+                tip = random.choice(tips)
                 game_over = False
                 platforms = [[260, 550], [160, 430], [160, 166], [30, 298], [280, 46]]
                 white_platforms = [[280, 298]]
@@ -331,6 +355,15 @@ while running:
                     pause()
             if (event.key == pygame.K_p):
                 pause()
+            if (event.key == pygame.K_ESCAPE):
+                running = False
+            if(event.key == pygame.K_x):
+                if game_over:
+                    data = {"powerups": 2, "high_score": 0}
+                    with open("bdcrypt.json", "w") as f:
+                        dump_data(data, f)
+                        powerup = 2
+                        high_score = 0
             
         if event.type == pygame.KEYUP:
             if (event.key == pygame.K_a) or (event.key == pygame.K_LEFT):
@@ -370,9 +403,10 @@ while running:
             finalscore = 'Score: ' + str(score)
 
         if score == 0:
-            finalscore = 'Score: 0. L Bozo'
+            finalscore = 'Score: 0. You suck.'
         fent = pygame.font.SysFont('times new roman', 60)
         fent2 = pygame.font.SysFont('times new roman', 30)
+        fent3 = pygame.font.SysFont('times new roman', 20)
 
 
         gover = fent.render('YOU DIED', True, black)
@@ -384,7 +418,7 @@ while running:
         restartmsg = fent2.render('Press R to restart', True, black)
         restartmsg_rect = restartmsg.get_rect(center=(width/2, height/2 + 100))
 
-        helpmsg = fent2.render('Press F1 for help', True, black)
+        helpmsg = fent3.render(tip, True, black)
         helpmsg_rect = helpmsg.get_rect(center=(width/2, height/2 + 150))
 
         screen.blit(restartmsg, restartmsg_rect)
@@ -394,13 +428,14 @@ while running:
         y_change = 0
         x_change = 0
         previous_score = score
+        data['high_score'] = high_score
     
     #powerup generation
     if score % 100 == 0 and score != 0 and score != previous_score:
         powerup += 1
         previous_score = score
-    
-    
+    data['powerups'] = powerup
+    dump_data(data, file)
     pygame.display.flip()
 
 pygame.quit()

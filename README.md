@@ -15,8 +15,8 @@ Just a recreation of the iOS classic, Doodle Jump.
       - [Misc](#misc)
         - [Help: <kbd> F1 </kbd>](#help--f1-)
         - [Pause/Resume: <kbd> P </kbd>](#pauseresume--p-)
-    - [Setup (a guide for newbies)](#setup-a-guide-for-newbies)
-  - [Compatible devices](#compatible-devices)
+        - [Reset score data <kbd> X </kbd>](#reset-score-data-x)
+    - [Setup](#setup)
   - [Dependencies](#dependencies)
   - [Tools](#tools)
   - [Contributing](#contributing)
@@ -30,10 +30,10 @@ Just a recreation of the iOS classic, Doodle Jump.
 
 - The game includes different types of __platforms__ that can be recognised based on their color:
 
-    - ****Green:**** These are the normal platforms that the player can land safely on after every jump
-    - ****White:**** These platforms are of one time use. Once you jump on them, they're gone.
-    - ****Brown:**** These platforms cannot be jumped on and break if you land on them.
-    - ****Springs:**** Need a jump boost? Just land on one of the springs you spot. These provide a higher jump and a definite boost in score
+    - ****Green:**** These are the most common platforms and can be jumped on multiple times.
+    - ****White:**** These platforms can only be jumped on once.
+    - ****Brown:**** Jump on them and you fall right through. 
+    - ****Springs:**** These are the most useful platforms. They can be jumped on and give you a boost when you land on them.
 
 - ****Super jumps:**** These are collectible powerups that give a higher jump when accessed. Each time you surpass a score of 100, a [super jump](#super-jump-space) is earned. 
 
@@ -53,31 +53,28 @@ Just a recreation of the iOS classic, Doodle Jump.
 
 ##### Help: <kbd> F1 </kbd>
 ##### Pause/Resume: <kbd> P </kbd>
+##### Reset score data <kbd> X </kbd>
 
-### Setup (a guide for newbies)
+### Setup
 
 0. Have python [installed](https://www.python.org/downloads/).
 
 1. To play this game you must first download the game files from [here](https://github.com/LemonizDev/doodlejump/archive/refs/heads/main.zip).
-2. Once thats done, open the zip file and extract the components in your desired path
-3. Open command prompt and run `pip install pygame` or `py -m pip install pygame` (ignore this step if the dependency is already installed)
+2. Extract the files from the downloaded zip to a folder of your choice.
+3. Open cmd and run `pip install pygame` or `py -m pip install pygame` 
 4. Open the extracted folder (refer step 2) and run `main.py`
 
-And thats all you need to know about playing the game
-
-## Compatible devices
-
-PC's (any os that can run python)
+Thats all you need to do to play the game. Enjoy!
 
 ## Dependencies
 
-Here are the libraries I used while making the game
-
 - pygame
+  - mixer
 - Turtle:
   - speed
 - webbrowser
 - random
+
 
 ## Tools
 

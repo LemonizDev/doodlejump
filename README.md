@@ -1,6 +1,6 @@
 # Doodle Jump
 
-Just a recreation of the iOS classic, Doodle Jump.
+Just a recreation of the classic. 
 
 ## Table of Contents
 
